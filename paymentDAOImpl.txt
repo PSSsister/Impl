@@ -1,0 +1,432 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import bean.TransactionBean;
+import  bean.User;
+
+
+public class PaymentWalletDaoImp {
+
+	
+	private static final String accountId = null;
+	static Random rand =new Random();
+	SimpleDateFormat sd= new SimpleDateFormat("dd/MM/yyyy");
+	SimpleDateFormat sd1= new SimpleDateFormat("HH:mm:ss");
+	public int generateRandomTransactionId()
+	{
+		int n= rand.nextInt(1000);
+		return n;
+	}
+	
+	 
+	
+	
+	public void userAccountCreate(User userbean)
+	{
+		
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		try{
+		//jpa logic to perform insert operation
+		 emf=Persistence.createEntityManagerFactory("JpaProject1");
+		 em =emf.createEntityManager();
+	     em.getTransaction().begin();
+	    
+		 em.persist(userbean);
+		
+		 em.getTransaction().commit();
+		
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+		
+		}
+	
+     }
+	
+	public String showBalance(Integer accountId,String password)
+	{
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		try{
+		//jpa logic to perform insert operation
+		 emf=Persistence.createEntityManagerFactory("JpaProject1");
+		 em =emf.createEntityManager();
+	     em.getTransaction().begin();
+	     User ub = (User) em.find(User.class, new Integer(accountId));
+	     em.getTransaction().commit();
+			
+		return "balance is "+ub.getBalance(); 
+	
+		
+		
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return null;
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+		
+		}
+	
+     }
+	public String Deposit(Integer accountNo, String password, Integer amount)
+	{
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		
+		try{
+		//jpa logic to perform insert operation
+		 emf=Persistence.createEntityManagerFactory("JpaProject1");
+		 em =emf.createEntityManager();
+	     em.getTransaction().begin();
+	     User ub = (User) em.find(User.class, new Integer(accountNo));
+			int updatetBalance = ub.getBalance() + amount;
+			ub.setBalance(updatetBalance);
+			
+			TransactionBean tb = new TransactionBean();
+			//Timestamp getDate = rs.getTimestamp("transactiondate");
+			Date date= new Date();
+			long time = date.getTime();
+			Timestamp ts = new Timestamp(time);
+			tb.setAccountNo(accountNo);
+			tb.setAmount(amount);
+			tb.setTransactionType("Deposit");
+			tb.setTransactiondate(ts);
+			
+			em.persist(tb);
+			em.getTransaction().commit();
+			
+			return "Deposit Successfull";
+	
+		
+		
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return null;
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+	}
+	}
+	
+	public String withDraw(Integer accountNo, String password, Integer amount)
+	{
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		
+		try{
+		//jpa logic to perform insert operation
+			 emf=Persistence.createEntityManagerFactory("JpaProject1");
+			 em =emf.createEntityManager();
+		     em.getTransaction().begin();
+		     User ub = (User) em.find(User.class, new Integer(accountNo));
+			 int updatetBalance = ub.getBalance() -amount;
+		     ub.setBalance(updatetBalance);
+			 em.getTransaction().commit();
+			
+			 em.getTransaction().begin();
+			
+			TransactionBean tb = new TransactionBean();
+			//Timestamp getDate = rs.getTimestamp("transactiondate");
+			Date date= new Date();
+			long time = date.getTime();
+			Timestamp ts = new Timestamp(time);
+			tb.setAccountNo(accountNo);
+			tb.setAmount(amount);
+			tb.setTransactionType("Withdraw");
+			tb.setTransactiondate(ts);
+			
+			em.persist(tb);
+			em.getTransaction().commit();
+			
+			return "Withdraw Successfull";
+
+		
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return null;
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+	}
+	}
+	public String fundTransfer(Integer accountNo, String password, Integer destAccountNo,Integer amount)
+	{
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		
+		try{
+			
+		//jpa logic to perform insert operation
+			 emf=Persistence.createEntityManagerFactory("JpaProject1");
+			 em =emf.createEntityManager();
+		     em.getTransaction().begin();
+		     User ub = (User) em.find(User.class, new Integer(accountNo));
+			 int updatetBalance = ub.getBalance() - amount;
+		     ub.setBalance(updatetBalance);
+			 em.getTransaction().commit();
+			 em.getTransaction().begin();
+			
+			TransactionBean tb = new TransactionBean();
+			//Timestamp getDate = rs.getTimestamp("transactiondate");
+			Date date= new Date();
+			long time = date.getTime();
+			Timestamp ts = new Timestamp(time);
+			tb.setAccountNo(accountNo);
+			tb.setToAccountId(destAccountNo);
+			tb.setAmount(amount);
+			tb.setTransactionType("fund transfer to");
+			tb.setTransactiondate(ts);
+			
+			em.persist(tb);
+			em.getTransaction().commit();
+			
+			
+			
+			em.getTransaction().begin();
+			
+			User ub2 = (User) em.find(User.class, new Integer(destAccountNo));
+			int updatetBalance2 = ub2.getBalance() + amount;
+			ub2.setBalance(updatetBalance2);
+			em.getTransaction().commit();
+			
+			
+			
+			em.getTransaction().begin();
+			
+			TransactionBean tb2 = new TransactionBean();
+			//Timestamp getDate = rs.getTimestamp("transactiondate");
+			Date date2= new Date();
+			long time2 = date.getTime();
+			Timestamp ts2 = new Timestamp(time2);
+			tb2.setAccountNo(destAccountNo);
+			tb2.setToAccountId(accountNo);
+			tb2.setAmount(amount);
+			tb2.setTransactionType("fund transfer from");
+			tb2.setTransactiondate(ts2);
+			
+			em.persist(tb2);
+			
+			
+			em.getTransaction().commit();
+			
+			return " Successfull";
+			
+
+		
+			
+		
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return null;
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+		}
+	}
+	public HashMap<Integer, TransactionBean> printTransactions(Integer accountNo)
+	{
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		try{
+			
+        HashMap<Integer,TransactionBean> hm = new HashMap<Integer,TransactionBean>();
+        emf=Persistence.createEntityManagerFactory("JpaProject1");
+		 em =emf.createEntityManager();
+	     em.getTransaction().begin();
+		
+		TransactionBean tb = (TransactionBean) em.find(TransactionBean.class, new Integer(accountNo));
+		
+		em.getTransaction().commit();
+		
+		hm.put(accountNo, tb);
+		
+		return hm;
+	  }
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return null;
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+		}
+		
+
+    }
+	public boolean validAccountId(Integer accountNo)
+	{
+		EntityManagerFactory emf=null;
+		EntityManager em=null;
+		
+		try{
+			
+			 emf=Persistence.createEntityManagerFactory("JpaProject1");
+			 em =emf.createEntityManager();
+		     em.getTransaction().begin();
+		     User ub = (User) em.find(User.class, new Integer(accountNo));
+	     	 if(ub != null) {
+			   return true;
+		     }
+		     else {
+			 return false;
+		}
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return false;
+		}
+		finally
+		{
+		  if(em!=null && emf!=null)
+		  {
+			em.close();
+			emf.close();
+		  }
+		}
+		
+	}
+	 public boolean checkBalance(Integer accountNo, Integer amount)
+	 {
+		 EntityManagerFactory emf=null;
+			EntityManager em=null;
+			
+			try{
+				
+				 emf=Persistence.createEntityManagerFactory("JpaProject1");
+				 em =emf.createEntityManager();
+			   
+			     User ub = (User) em.find(User.class, new Integer(accountNo));
+		     	 if(ub.getBalance() >= amount) {
+				   return true;
+			     }
+			     else {
+				 return false;
+			}
+			}
+			catch(Exception ex)
+			{
+				ex.printStackTrace();
+				return false;
+			}
+			finally
+			{
+			  if(em!=null && emf!=null)
+			  {
+				em.close();
+				emf.close();
+			  }
+			}
+			
+		 
+	 }
+	
+}
+	
+
+	
